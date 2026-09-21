@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نظام دعوات الجيم</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0b0f;
+  --surface: #16171d;
+  --field: #0f1015;
+  --line: #2a2c35;
+  --line-strong: #3a3d48;
+  --text: #f3f4f6;
+  --text-soft: #d1d5db;
+  --muted: #9ca3af;
+  --accent: #c6ff3d;
+  --on-accent: #0b0b0f;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --error: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 18px 14px 28px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Cairo', Tahoma, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+main { width: 100%; max-width: 760px; margin: 0 auto; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px 18px;
+  box-shadow: 0 8px 30px rgba(198, 255, 61, 0.08);
+}
+
+h1 { margin: 0 0 6px; font-size: 24px; font-weight: 700; line-height: 1.3; color: #fff; }
+h2 { margin: 22px 0 10px; font-size: 18px; color: #fff; }
+.lead { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+[hidden] { display: none !important; }
+
+.field { margin-bottom: 18px; }
+label.title { display: block; margin-bottom: 8px; font-weight: 600; font-size: 15px; color: #e5e7eb; }
+
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+select,
+textarea {
+  width: 100%;
+  background: var(--field);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+}
+
+input[type="text"],
+input[type="tel"],
+input[type="password"],
+select {
+  height: 52px;
+  padding: 0 14px;
+}
+
+input[type="password"],
+.code-input {
+  direction: ltr;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+
+input[type="tel"] { direction: ltr; text-align: right; }
+
+textarea {
+  min-height: 180px;
+  max-height: 420px;
+  resize: vertical;
+  padding: 14px;
+  direction: ltr;
+  text-align: left;
+  line-height: 1.5;
+}
+
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-inline-end: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1.5l6 6 6-6' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: left 14px center;
+}
+
+input::placeholder,
+textarea::placeholder { color: #6b7280; letter-spacing: 0; }
+input:focus,
+select:focus,
+textarea:focus { outline: none; border-color: var(--accent); }
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.field.has-error input,
+.field.has-error select { border-color: var(--error); }
+
+button.primary,
+button.ghost {
+  width: 100%;
+  height: 54px;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.primary {
+  border: 0;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+button.ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--line-strong);
+}
+
+button:disabled { opacity: 0.6; cursor: wait; }
+
+.error {
+  margin: 6px 0 0;
+  color: var(--error);
+  font-size: 14px;
+  font-weight: 600;
+}
+.error:empty { display: none; }
+
+.form-error {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  border: 1px solid var(--error);
+  border-radius: 12px;
+  color: var(--error);
+  font-size: 14px;
+  font-weight: 600;
+}
+.form-error:empty { display: none; }
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 4px 0 22px;
+  color: var(--text-soft);
+  font-size: 14px;
+  cursor: pointer;
+}
+.consent input {
+  flex: none;
+  width: 22px;
+  height: 22px;
+  margin: 2px 0 0;
+  accent-color: var(--accent);
+}
+
+.success p { margin: 0 0 22px; color: var(--text-soft); }
+.success .num { direction: ltr; unicode-bidi: isolate; display: inline-block; color: #fff; font-weight: 700; }
+
+#staff-reader {
+  width: 100%;
+  min-height: 60px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--field);
+}
+#staff-reader video { border-radius: 14px; }
+
+.hint { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+.manual { display: grid; grid-template-columns: 1fr 96px; gap: 8px; margin-bottom: 4px; }
+.manual button { height: 52px; font-size: 16px; }
+
+.scan-result {
+  margin-top: 16px;
+  padding: 16px 14px;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  text-align: center;
+}
+.scan-result.ok { border-color: var(--ok); }
+.scan-result.used { border-color: var(--warn); }
+.scan-result.bad { border-color: var(--error); }
+.scan-result h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+.scan-result.ok h2 { color: var(--ok); }
+.scan-result.used h2 { color: var(--warn); }
+.scan-result.bad h2 { color: var(--error); }
+.scan-result .who { margin: 0; font-size: 20px; font-weight: 700; color: #fff; }
+.scan-result .meta { margin: 2px 0 0; color: var(--text-soft); font-size: 15px; }
+.actions { margin-top: 14px; }
+
+.stats,
+.rates {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stats { margin: 16px 0 18px; }
+
+.stat,
+.rate {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--field);
+}
+
+.stat span,
+.rate span { display: block; color: var(--muted); font-size: 13px; }
+.stat strong { display: block; margin-top: 4px; font-size: 28px; line-height: 1.1; color: #fff; }
+.rate { text-align: center; }
+.rate strong { display: block; margin-top: 3px; font-size: 24px; color: var(--accent); }
+
+.warning {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid rgba(251, 191, 36, 0.55);
+  border-radius: 12px;
+  color: #f8e7b0;
+  background: rgba(251, 191, 36, 0.08);
+  font-size: 14px;
+}
+
+.owner-result {
+  margin-top: 18px;
+  border-top: 1px solid var(--line);
+  padding-top: 16px;
+}
+
+.matches {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+.matches th,
+.matches td {
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+}
+.matches th { color: var(--muted); font-size: 13px; font-weight: 600; }
+.matches td { color: var(--text-soft); }
+.empty { margin: 10px 0 0; color: var(--muted); }
+.ignored { margin: 10px 0 0; color: var(--warn); font-size: 14px; }
+
+@media (max-width: 640px) {
+  body { padding: 14px 12px 24px; }
+  .stats,
+  .rates { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+  <section class="card app-view" id="view-register">
+    <form id="reg-form" novalidate>
+      <h1 id="reg-title">سجّل بياناتك</h1>
+      <p class="lead" id="reg-lead">هتوصلك رسالة تأكيد على واتساب.</p>
+
+      <div class="field" id="reg-field-name">
+        <label class="title" for="reg-name">الاسم</label>
+        <input type="text" id="reg-name" name="name" autocomplete="name" maxlength="80" aria-describedby="reg-err-name">
+        <p class="error" id="reg-err-name" role="alert"></p>
+      </div>
+
+      <div class="field" id="reg-field-phone">
+        <label class="title" for="reg-phone">رقم الواتساب</label>
+        <input type="tel" id="reg-phone" name="phone" inputmode="tel" autocomplete="tel" placeholder="01012345678" aria-describedby="reg-err-phone">
+        <p class="error" id="reg-err-phone" role="alert"></p>
+      </div>
+
+      <div class="field" id="reg-field-goal">
+        <label class="title" for="reg-goal">هدفك</label>
+        <select id="reg-goal" name="goal" aria-describedby="reg-err-goal">
+          <option value="" selected disabled>اختار هدفك</option>
+          <option value="تخسيس">تخسيس</option>
+          <option value="بناء عضلات">بناء عضلات</option>
+          <option value="لياقة">لياقة</option>
+          <option value="بجرّب بس">بجرّب بس</option>
+        </select>
+        <p class="error" id="reg-err-goal" role="alert"></p>
+      </div>
+
+      <label class="consent">
+        <input type="checkbox" id="reg-consent" name="consent">
+        <span>أوافق أستقبل عروض ومعلومات من الجيم على واتساب، وأقدر أوقفها في أي وقت.</span>
+      </label>
+
+      <p class="form-error" id="reg-form-error" role="alert"></p>
+      <button type="submit" class="primary" id="reg-submit">سجّل بياناتي</button>
+    </form>
+
+    <section class="success" id="reg-success" hidden>
+      <h1>تم التسجيل</h1>
+      <p>هتوصلك رسالة تأكيد على واتساب على الرقم <span class="num" id="reg-done-phone"></span></p>
+      <button type="button" class="ghost" id="reg-again">تسجيل شخص آخر</button>
+    </section>
+  </section>
+
+  <section class="app-view" id="view-staff" hidden>
+    <section class="card" id="staff-screen-pin">
+      <h1>الاستقبال</h1>
+      <p class="lead">اكتب الـ PIN بتاع الجيم.</p>
+      <label class="title" for="staff-pin">PIN</label>
+      <input type="password" id="staff-pin" inputmode="numeric" autocomplete="off">
+      <p class="error" id="staff-pin-error" role="alert"></p>
+      <div style="height:14px"></div>
+      <button type="button" class="primary" id="staff-pin-go">دخول</button>
+    </section>
+
+    <section class="card" id="staff-screen-scan" hidden>
+      <h1>مسح كود الدخول</h1>
+      <p class="lead" id="staff-test-note" hidden>وضع التجربة: البيانات بتتبعت لرابط الاختبار في n8n.</p>
+
+      <div id="staff-reader"></div>
+      <p class="hint" id="staff-cam-hint">وجّه الكاميرا على الـ QR. ولو مش شغالة، اكتب الكود بإيدك.</p>
+
+      <div class="manual">
+        <input type="text" class="code-input" id="staff-code" placeholder="GYM-XXXXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+        <button type="button" class="primary" id="staff-check">تحقق</button>
+      </div>
+      <p class="error" id="staff-scan-error" role="alert"></p>
+
+      <div class="scan-result" id="staff-result" hidden>
+        <h2 id="staff-result-title"></h2>
+        <p class="who" id="staff-result-name"></p>
+        <p class="meta" id="staff-result-meta"></p>
+        <div class="actions">
+          <button type="button" class="ghost" id="staff-next">مسح كود تاني</button>
+        </div>
+      </div>
+    </section>
+  </section>
+
+  <section class="app-view" id="view-owner" hidden>
+    <section class="card" id="owner-screen-pin">
+      <h1>لوحة المالك</h1>
+      <p class="lead">اكتب PIN المالك عشان تشوف أرقام الدعوات وتقارن المشتركين.</p>
+      <label class="title" for="owner-pin">PIN</label>
+      <input type="password" id="owner-pin" inputmode="numeric" autocomplete="off">
+      <p class="error" id="owner-pin-error" role="alert"></p>
+      <div style="height:14px"></div>
+      <button type="button" class="primary" id="owner-pin-go">دخول</button>
+    </section>
+
+    <section class="card" id="owner-screen-dashboard" hidden>
+      <h1>قياس عملاء الدعوات</h1>
+      <p class="lead">الصق أرقام المشتركين من سيستم الجيم، ورقم واحد في كل سطر أفضل.</p>
+
+      <div class="stats" aria-label="أرقام أساسية">
+        <div class="stat"><span>سجّل</span><strong id="owner-registered">0</strong></div>
+        <div class="stat"><span>اتبعته دعوة</span><strong id="owner-invited">0</strong></div>
+        <div class="stat"><span>جه الجيم</span><strong id="owner-visited">0</strong></div>
+      </div>
+
+      <p class="warning">النتيجة بتحسب المشتركين اللي رقمهم مسجّل عندنا كـ "جه من دعوة". لو واحد كان مشترك قبل كده وسجّل عندنا، هيتحسب. راجع تاريخ الزيارة جنب كل اسم.</p>
+
+      <label class="title" for="owner-numbers">أرقام المشتركين</label>
+      <textarea id="owner-numbers" spellcheck="false" placeholder="01012345678&#10;201012345678&#10;+20 10 1234 5678"></textarea>
+      <p class="error" id="owner-match-error" role="alert"></p>
+      <div style="height:12px"></div>
+      <button type="button" class="primary" id="owner-compare">قارن</button>
+
+      <div class="owner-result" id="owner-result" hidden>
+        <div class="rates">
+          <div class="rate"><span>اشترك من زوار الدعوات</span><strong id="owner-matched">0</strong></div>
+          <div class="rate"><span>نسبة الحضور</span><strong id="owner-visit-rate">0%</strong></div>
+          <div class="rate"><span>نسبة التحويل</span><strong id="owner-conversion-rate">0%</strong></div>
+        </div>
+        <p class="ignored" id="owner-ignored"></p>
+        <h2>المشتركين المطابقين</h2>
+        <table class="matches" id="owner-matches-table" hidden>
+          <thead>
+            <tr><th>الاسم</th><th>تاريخ الزيارة</th></tr>
+          </thead>
+          <tbody id="owner-matches-body"></tbody>
+        </table>
+        <p class="empty" id="owner-empty-matches" hidden>مفيش أرقام مطابقة لزوار الدعوات.</p>
+      </div>
+    </section>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+const CONFIG = {
+  REGISTER_PROD_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook/gym-register',
+  REGISTER_TEST_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook-test/gym-register',
+  CHECKIN_PROD_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook/gym-checkin',
+  CHECKIN_TEST_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook-test/gym-checkin',
+  MATCH_PROD_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook/gym-match',
+  MATCH_TEST_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook-test/gym-match',
+  GYM_NAME: ''
+};
+
+const IS_TEST = new URLSearchParams(location.search).has('test');
+const URLS = {
+  register: IS_TEST ? CONFIG.REGISTER_TEST_URL : CONFIG.REGISTER_PROD_URL,
+  checkin: IS_TEST ? CONFIG.CHECKIN_TEST_URL : CONFIG.CHECKIN_PROD_URL,
+  match: IS_TEST ? CONFIG.MATCH_TEST_URL : CONFIG.MATCH_PROD_URL
+};
+
+const $ = id => document.getElementById(id);
+const views = ['register', 'staff', 'owner'];
+let activeView = '';
+
+async function api(url, payload, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs || 15000);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new URLSearchParams(payload),
+      signal: controller.signal
+    });
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (err) {
+      const parseError = new Error('bad_json');
+      parseError.status = res.status;
+      parseError.body = text;
+      throw parseError;
+    }
+    if (!res.ok) {
+      const httpError = new Error('http_error');
+      httpError.status = res.status;
+      httpError.body = data;
+      throw httpError;
+    }
+    return data || {};
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function serverErrorMessage(err) {
+  if (err && err.name === 'AbortError') return 'السيرفر اتأخر في الرد. جرّب تاني.';
+  if (err && err.status === 404) return 'رابط Workflow مش شغال أو مش Published في n8n.';
+  return 'مقدرناش نوصل للسيرفر. اتأكد إن n8n و ngrok شغالين وجرّب تاني.';
+}
+
+function toLatinDigits(s) {
+  return String(s == null ? '' : s)
+    .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+}
+
+function normalizePhone(raw) {
+  let d = toLatinDigits(raw).replace(/\D/g, '');
+  if (d.startsWith('00')) d = d.slice(2);
+  if (d.startsWith('0') && d.length === 11) d = '20' + d.slice(1);
+  else if (d.startsWith('1') && d.length === 10) d = '20' + d;
+  return d;
+}
+
+function isValidPhone(normalized) {
+  return /^201[0125]\d{8}$/.test(normalized);
+}
+
+function initialView() {
+  const params = new URLSearchParams(location.search);
+  const screen = params.get('screen') || params.get('view') || '';
+  return views.includes(screen) ? screen : 'register';
+}
+
+function setActiveView(view) {
+  if (!views.includes(view)) view = 'register';
+  activeView = view;
+  views.forEach(name => {
+    $('view-' + name).hidden = name !== view;
+  });
+
+  if (view !== 'staff') stopStaffScanner();
+  if (view === 'staff') restoreStaff();
+  if (view === 'owner') restoreOwner();
+}
+
+// ---------- Registration ----------
+const regForm = $('reg-form');
+const regFields = { name: $('reg-name'), phone: $('reg-phone'), goal: $('reg-goal') };
+const PHONE_MSG = 'رقم الواتساب غير صحيح. اكتبه من 11 رقم، مثال: 01012345678';
+
+if (CONFIG.GYM_NAME) {
+  $('reg-title').textContent = 'أهلا في ' + CONFIG.GYM_NAME;
+  document.title = CONFIG.GYM_NAME;
+}
+
+if (IS_TEST) $('reg-lead').textContent = 'وضع التجربة: البيانات بتتبعت لرابط الاختبار في n8n.';
+
+function regSetError(key, message) {
+  $('reg-err-' + key).textContent = message;
+  $('reg-field-' + key).classList.add('has-error');
+  regFields[key].setAttribute('aria-invalid', 'true');
+}
+
+function regClearError(key) {
+  $('reg-err-' + key).textContent = '';
+  $('reg-field-' + key).classList.remove('has-error');
+  regFields[key].removeAttribute('aria-invalid');
+}
+
+function regSetFormError(message) { $('reg-form-error').textContent = message || ''; }
+
+function regSetBusy(busy) {
+  $('reg-submit').disabled = busy;
+  $('reg-submit').textContent = busy ? 'بنسجّل بياناتك...' : 'سجّل بياناتي';
+}
+
+Object.keys(regFields).forEach(key => {
+  regFields[key].addEventListener('input', () => { regClearError(key); regSetFormError(''); });
+  regFields[key].addEventListener('change', () => regClearError(key));
+});
+
+$('reg-phone').addEventListener('blur', () => {
+  const v = regFields.phone.value.trim();
+  if (v && !isValidPhone(normalizePhone(v))) regSetError('phone', PHONE_MSG);
+});
+
+regForm.addEventListener('submit', async event => {
+  event.preventDefault();
+  regSetFormError('');
+  Object.keys(regFields).forEach(regClearError);
+
+  const name = regFields.name.value.trim();
+  const phoneRaw = regFields.phone.value.trim();
+  const goal = regFields.goal.value;
+  const problems = [];
+
+  if (!name) problems.push(['name', 'اكتب اسمك.']);
+  if (!isValidPhone(normalizePhone(phoneRaw))) problems.push(['phone', PHONE_MSG]);
+  if (!goal) problems.push(['goal', 'اختار هدفك.']);
+
+  if (problems.length) {
+    problems.forEach(([key, msg]) => regSetError(key, msg));
+    regFields[problems[0][0]].focus();
+    return;
+  }
+
+  regSetBusy(true);
+  try {
+    const data = await api(URLS.register, {
+      name: name,
+      phone: phoneRaw,
+      goal: goal,
+      consent: $('reg-consent').checked ? 'yes' : 'no'
+    }, 15000);
+
+    if (data && data.ok) {
+      $('reg-done-phone').textContent = '0' + normalizePhone(phoneRaw).slice(2);
+      regForm.hidden = true;
+      $('reg-success').hidden = false;
+    } else if (data && data.error === 'invalid_phone') {
+      regSetError('phone', PHONE_MSG);
+      regFields.phone.focus();
+    } else if (data && data.error === 'missing_name') {
+      regSetError('name', 'اكتب اسمك.');
+      regFields.name.focus();
+    } else {
+      regSetFormError('مقدرناش نسجّل بياناتك. جرّب تاني بعد شوية.');
+    }
+  } catch (err) {
+    regSetFormError(serverErrorMessage(err));
+  } finally {
+    regSetBusy(false);
+  }
+});
+
+$('reg-again').addEventListener('click', () => {
+  regForm.reset();
+  Object.keys(regFields).forEach(regClearError);
+  regSetFormError('');
+  $('reg-success').hidden = true;
+  regForm.hidden = false;
+  regFields.name.focus();
+});
+
+// ---------- Staff ----------
+let staffPin = sessionStorage.getItem('gym_pin') || '';
+let staffScanner = null;
+let staffBusy = false;
+let staffLastCode = '';
+
+async function tryStaffPin(value) {
+  $('staff-pin-error').textContent = '';
+  if (!value) { $('staff-pin-error').textContent = 'اكتب الـ PIN.'; return false; }
+  $('staff-pin-go').disabled = true;
+  try {
+    const data = await api(URLS.checkin, { pin: value, code: '', action: 'checkin' }, 15000);
+    if (data.status === 'bad_pin') {
+      $('staff-pin-error').textContent = 'الـ PIN غلط.';
+      return false;
+    }
+    staffPin = value;
+    sessionStorage.setItem('gym_pin', value);
+    showStaffScan();
+    return true;
+  } catch (err) {
+    $('staff-pin-error').textContent = serverErrorMessage(err);
+    return false;
+  } finally {
+    $('staff-pin-go').disabled = false;
+  }
+}
+
+$('staff-pin-go').addEventListener('click', () => tryStaffPin($('staff-pin').value.trim()));
+$('staff-pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryStaffPin($('staff-pin').value.trim()); });
+
+function showStaffPin(message) {
+  stopStaffScanner();
+  sessionStorage.removeItem('gym_pin');
+  staffPin = '';
+  $('staff-screen-scan').hidden = true;
+  $('staff-screen-pin').hidden = false;
+  $('staff-pin').value = '';
+  $('staff-pin-error').textContent = message || '';
+  $('staff-pin').focus();
+}
+
+function showStaffScan() {
+  $('staff-screen-pin').hidden = true;
+  $('staff-screen-scan').hidden = false;
+  if (IS_TEST) $('staff-test-note').hidden = false;
+  if (activeView === 'staff') startStaffScanner();
+}
+
+function restoreStaff() {
+  if (staffPin) showStaffScan();
+}
+
+async function startStaffScanner() {
+  if (typeof Html5Qrcode === 'undefined') {
+    $('staff-cam-hint').textContent = 'الكاميرا مش متاحة دلوقتي. اكتب الكود بإيدك.';
+    return;
+  }
+  try {
+    if (!staffScanner) staffScanner = new Html5Qrcode('staff-reader');
+    if (staffScanner.isScanning) return;
+    await staffScanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
+      decoded => handleStaffCode(decoded),
+      () => {}
+    );
+  } catch (err) {
+    $('staff-reader').hidden = true;
+    $('staff-cam-hint').textContent = 'الكاميرا مش شغالة (لازم رابط https وإذن الكاميرا). اكتب الكود بإيدك.';
+  }
+}
+
+async function stopStaffScanner() {
+  if (staffScanner && staffScanner.isScanning) {
+    try { await staffScanner.stop(); } catch (err) { /* already stopped */ }
+  }
+}
+
+function showStaffResult(kind, title, name, meta) {
+  const box = $('staff-result');
+  box.className = 'scan-result ' + kind;
+  $('staff-result-title').textContent = title;
+  $('staff-result-name').textContent = name || '';
+  $('staff-result-meta').textContent = meta || '';
+  box.hidden = false;
+}
+
+async function handleStaffCode(raw) {
+  if (staffBusy) return;
+  const code = String(raw || '').trim().toUpperCase();
+  if (!code) { $('staff-scan-error').textContent = 'اكتب الكود أو امسح الـ QR.'; return; }
+
+  staffBusy = true;
+  staffLastCode = code;
+  $('staff-scan-error').textContent = '';
+  $('staff-result').hidden = true;
+  await stopStaffScanner();
+  $('staff-check').disabled = true;
+
+  try {
+    const data = await api(URLS.checkin, { pin: staffPin, code: code, action: 'checkin' }, 15000);
+    const goal = data.goal ? 'الهدف: ' + data.goal : '';
+
+    if (data.status === 'bad_pin') { showStaffPin('الـ PIN اتغيّر أو غلط. اكتبه تاني.'); return; }
+    if (data.status === 'ok') showStaffResult('ok', 'صحيح، تم تسجيل الدخول', data.name, goal);
+    else if (data.status === 'used') showStaffResult('used', 'الكود اتستخدم قبل كده', data.name, data.usedAt ? 'وقت الدخول: ' + data.usedAt : goal);
+    else showStaffResult('bad', 'الكود مش موجود', '', 'راجع الكود وجرّب تاني.');
+  } catch (err) {
+    $('staff-scan-error').textContent = serverErrorMessage(err);
+    startStaffScanner();
+  } finally {
+    staffBusy = false;
+    $('staff-check').disabled = false;
+  }
+}
+
+$('staff-check').addEventListener('click', () => handleStaffCode($('staff-code').value));
+$('staff-code').addEventListener('keydown', e => { if (e.key === 'Enter') handleStaffCode($('staff-code').value); });
+$('staff-next').addEventListener('click', () => {
+  $('staff-result').hidden = true;
+  $('staff-scan-error').textContent = '';
+  $('staff-code').value = '';
+  staffLastCode = '';
+  startStaffScanner();
+});
+
+// ---------- Owner ----------
+let ownerPin = sessionStorage.getItem('gym_owner_pin') || '';
+
+function pct(part, total) {
+  if (!total) return '0%';
+  return Math.round((part / total) * 100) + '%';
+}
+
+function setOwnerStats(data) {
+  $('owner-registered').textContent = data.registered || 0;
+  $('owner-invited').textContent = data.invited || 0;
+  $('owner-visited').textContent = data.visited || 0;
+}
+
+function renderOwnerResult(data) {
+  setOwnerStats(data);
+  $('owner-matched').textContent = data.matched || 0;
+  $('owner-visit-rate').textContent = pct(data.visited || 0, data.invited || 0);
+  $('owner-conversion-rate').textContent = pct(data.matched || 0, data.visited || 0);
+  $('owner-ignored').textContent = data.ignoredNumbers ? 'تم تجاهل ' + data.ignoredNumbers + ' رقم غير صالح.' : '';
+
+  const matches = Array.isArray(data.matches) ? data.matches : [];
+  const tbody = $('owner-matches-body');
+  tbody.textContent = '';
+  matches.forEach(match => {
+    const tr = document.createElement('tr');
+    const name = document.createElement('td');
+    const visitedAt = document.createElement('td');
+    name.textContent = match.name || '';
+    visitedAt.textContent = match.visitedAt || '';
+    tr.append(name, visitedAt);
+    tbody.appendChild(tr);
+  });
+  $('owner-matches-table').hidden = matches.length === 0;
+  $('owner-empty-matches').hidden = matches.length !== 0;
+  $('owner-result').hidden = false;
+}
+
+async function loadOwnerDashboard(value) {
+  $('owner-pin-error').textContent = '';
+  if (!value) { $('owner-pin-error').textContent = 'اكتب PIN المالك.'; return; }
+  $('owner-pin-go').disabled = true;
+  try {
+    const data = await api(URLS.match, { pin: value, numbers: '' }, 20000);
+    if (data.status === 'bad_pin') {
+      $('owner-pin-error').textContent = 'PIN المالك غلط.';
+      return;
+    }
+    ownerPin = value;
+    sessionStorage.setItem('gym_owner_pin', value);
+    setOwnerStats(data);
+    $('owner-screen-pin').hidden = true;
+    $('owner-screen-dashboard').hidden = false;
+    $('owner-numbers').focus();
+  } catch (err) {
+    $('owner-pin-error').textContent = serverErrorMessage(err);
+  } finally {
+    $('owner-pin-go').disabled = false;
+  }
+}
+
+function restoreOwner() {
+  if (ownerPin && $('owner-screen-dashboard').hidden) loadOwnerDashboard(ownerPin);
+}
+
+$('owner-pin-go').addEventListener('click', () => loadOwnerDashboard($('owner-pin').value.trim()));
+$('owner-pin').addEventListener('keydown', e => { if (e.key === 'Enter') loadOwnerDashboard($('owner-pin').value.trim()); });
+
+$('owner-compare').addEventListener('click', async () => {
+  $('owner-match-error').textContent = '';
+  $('owner-compare').disabled = true;
+  try {
+    const data = await api(URLS.match, { pin: ownerPin, numbers: $('owner-numbers').value }, 20000);
+    if (data.status === 'bad_pin') {
+      sessionStorage.removeItem('gym_owner_pin');
+      ownerPin = '';
+      $('owner-screen-dashboard').hidden = true;
+      $('owner-screen-pin').hidden = false;
+      $('owner-pin-error').textContent = 'PIN المالك اتغيّر أو غلط. اكتبه تاني.';
+      $('owner-pin').focus();
+      return;
+    }
+    renderOwnerResult(data);
+  } catch (err) {
+    $('owner-match-error').textContent = serverErrorMessage(err);
+  } finally {
+    $('owner-compare').disabled = false;
+  }
+});
+
+setActiveView(initialView());
+</script>
+</body>
+</html>
