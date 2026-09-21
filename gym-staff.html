@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>الاستقبال</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0b0b0f;
+  --surface: #16171d;
+  --field: #0f1015;
+  --line: #2a2c35;
+  --line-strong: #3a3d48;
+  --text: #f3f4f6;
+  --text-soft: #d1d5db;
+  --muted: #9ca3af;
+  --accent: #c6ff3d;
+  --on-accent: #0b0b0f;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --error: #ff6b6b;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 20px 16px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Cairo', Tahoma, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+main { width: 100%; max-width: 460px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 22px 18px;
+  box-shadow: 0 8px 30px rgba(198, 255, 61, 0.08);
+}
+
+h1 { margin: 0 0 6px; font-size: 24px; font-weight: 700; line-height: 1.3; color: #fff; }
+.lead { margin: 0 0 18px; color: var(--muted); font-size: 15px; }
+[hidden] { display: none !important; }
+
+label.title { display: block; margin-bottom: 8px; font-weight: 600; font-size: 15px; color: #e5e7eb; }
+
+input[type="text"], input[type="password"] {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  background: var(--field);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  font: inherit;
+  font-size: 16px;
+  direction: ltr;
+  text-align: center;
+  letter-spacing: 0.06em;
+}
+input::placeholder { color: #6b7280; letter-spacing: 0; }
+input:focus { outline: none; border-color: var(--accent); }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+button {
+  width: 100%;
+  height: 54px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+button:disabled { opacity: 0.6; cursor: wait; }
+button.ghost {
+  background: transparent;
+  color: var(--text-soft);
+  border: 1px solid var(--line-strong);
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.error { margin: 8px 0 0; color: var(--error); font-size: 14px; font-weight: 600; }
+.error:empty { display: none; }
+.stack > * + * { margin-top: 10px; }
+
+#reader {
+  width: 100%;
+  min-height: 60px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--field);
+}
+#reader video { border-radius: 14px; }
+
+.hint { margin: 0 0 14px; color: var(--muted); font-size: 14px; }
+
+.manual { display: grid; grid-template-columns: 1fr 96px; gap: 8px; margin-bottom: 4px; }
+.manual button { height: 52px; font-size: 16px; }
+
+.result {
+  margin-top: 16px;
+  padding: 16px 14px;
+  border: 2px solid var(--line-strong);
+  border-radius: 14px;
+  text-align: center;
+}
+.result.ok { border-color: var(--ok); }
+.result.used { border-color: var(--warn); }
+.result.bad { border-color: var(--error); }
+.result h2 { margin: 0 0 6px; font-size: 22px; font-weight: 700; }
+.result.ok h2 { color: var(--ok); }
+.result.used h2 { color: var(--warn); }
+.result.bad h2 { color: var(--error); }
+.result .who { margin: 0; font-size: 20px; font-weight: 700; color: #fff; }
+.result .meta { margin: 2px 0 0; color: var(--text-soft); font-size: 15px; }
+
+.actions { margin-top: 14px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<main>
+
+  <section class="card" id="screen-pin">
+    <h1>الاستقبال</h1>
+    <p class="lead">اكتب الـ PIN بتاع الجيم.</p>
+    <label class="title" for="pin">PIN</label>
+    <input type="password" id="pin" inputmode="numeric" autocomplete="off">
+    <p class="error" id="pin-error" role="alert"></p>
+    <div style="height:14px"></div>
+    <button type="button" id="pin-go">دخول</button>
+  </section>
+
+  <section class="card" id="screen-scan" hidden>
+    <h1>مسح كود الدخول</h1>
+    <p class="lead" id="test-note" hidden>وضع التجربة: البيانات بتتبعت لرابط الاختبار في n8n.</p>
+
+    <div id="reader"></div>
+    <p class="hint" id="cam-hint">وجّه الكاميرا على الـ QR. ولو مش شغالة، اكتب الكود بإيدك.</p>
+
+    <div class="manual">
+      <input type="text" id="code" placeholder="GYM-XXXXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+      <button type="button" id="check">تحقق</button>
+    </div>
+    <p class="error" id="scan-error" role="alert"></p>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title"></h2>
+      <p class="who" id="result-name"></p>
+      <p class="meta" id="result-meta"></p>
+      <div class="actions stack">
+        <button type="button" class="ghost" id="next">مسح كود تاني</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script>
+// ---- Setup ----
+const CONFIG = {
+  // Live webhook: the check-in workflow must be Published
+  PROD_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook/gym-checkin',
+  // Test webhook: n8n must be on "Listen for test event". Used when the page URL ends with ?test
+  TEST_URL: 'https://jett-granulative-jimmy.ngrok-free.dev/webhook-test/gym-checkin'
+};
+const IS_TEST = new URLSearchParams(location.search).has('test');
+const BACKEND_URL = IS_TEST ? CONFIG.TEST_URL : CONFIG.PROD_URL;
+// ---------------
+
+const $ = id => document.getElementById(id);
+let pin = sessionStorage.getItem('gym_pin') || '';
+let scanner = null;
+let busy = false;
+let lastCode = '';
+
+async function api(payload) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+  try {
+    // URL-encoded body = "simple" request, so the browser skips the CORS preflight
+    const res = await fetch(BACKEND_URL, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: new URLSearchParams(payload),
+      signal: controller.signal
+    });
+    const text = await res.text();
+    let data = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch (err) {
+      const parseError = new Error('bad_json');
+      parseError.status = res.status;
+      parseError.body = text;
+      throw parseError;
+    }
+    if (!res.ok) {
+      const httpError = new Error('http_error');
+      httpError.status = res.status;
+      httpError.body = data;
+      throw httpError;
+    }
+    return data || {};
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function serverErrorMessage(err) {
+  if (err && err.name === 'AbortError') return 'السيرفر اتأخر في الرد. جرّب تاني.';
+  if (err && err.status === 404) return 'رابط Workflow مش شغال أو مش Published في n8n.';
+  return 'مقدرناش نوصل للسيرفر. اتأكد إن n8n و ngrok شغالين وجرّب تاني.';
+}
+
+// ---------- PIN ----------
+async function tryPin(value) {
+  $('pin-error').textContent = '';
+  if (!value) { $('pin-error').textContent = 'اكتب الـ PIN.'; return false; }
+  const btn = $('pin-go');
+  btn.disabled = true;
+  try {
+    // An empty code is never a real guest, so the only thing that can go wrong is the PIN
+    const data = await api({ pin: value, code: '', action: 'checkin' });
+    if (data.status === 'bad_pin') {
+      $('pin-error').textContent = 'الـ PIN غلط.';
+      return false;
+    }
+    pin = value;
+    sessionStorage.setItem('gym_pin', value);
+    showScan();
+    return true;
+  } catch (err) {
+    $('pin-error').textContent = serverErrorMessage(err);
+    return false;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+$('pin-go').addEventListener('click', () => tryPin($('pin').value.trim()));
+$('pin').addEventListener('keydown', e => { if (e.key === 'Enter') tryPin($('pin').value.trim()); });
+
+function showPin(message) {
+  stopScanner();
+  sessionStorage.removeItem('gym_pin');
+  pin = '';
+  $('screen-scan').hidden = true;
+  $('screen-pin').hidden = false;
+  $('pin').value = '';
+  $('pin-error').textContent = message || '';
+  $('pin').focus();
+}
+
+// ---------- Scanner ----------
+function showScan() {
+  $('screen-pin').hidden = true;
+  $('screen-scan').hidden = false;
+  if (IS_TEST) $('test-note').hidden = false;
+  startScanner();
+}
+
+async function startScanner() {
+  if (typeof Html5Qrcode === 'undefined') {
+    $('cam-hint').textContent = 'الكاميرا مش متاحة دلوقتي. اكتب الكود بإيدك.';
+    return;
+  }
+  try {
+    if (!scanner) scanner = new Html5Qrcode('reader');
+    await scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 240, height: 240 } },
+      decoded => handleCode(decoded),
+      () => {}
+    );
+  } catch (err) {
+    $('reader').hidden = true;
+    $('cam-hint').textContent = 'الكاميرا مش شغالة (لازم رابط https وإذن الكاميرا). اكتب الكود بإيدك.';
+  }
+}
+
+async function stopScanner() {
+  if (scanner && scanner.isScanning) {
+    try { await scanner.stop(); } catch (err) { /* already stopped */ }
+  }
+}
+
+// ---------- Check a code ----------
+function showResult(kind, title, name, meta) {
+  const box = $('result');
+  box.className = 'result ' + kind;
+  $('result-title').textContent = title;
+  $('result-name').textContent = name || '';
+  $('result-meta').textContent = meta || '';
+  box.hidden = false;
+}
+
+async function handleCode(raw) {
+  if (busy) return;
+  const code = String(raw || '').trim().toUpperCase();
+  if (!code) { $('scan-error').textContent = 'اكتب الكود أو امسح الـ QR.'; return; }
+
+  busy = true;
+  lastCode = code;
+  $('scan-error').textContent = '';
+  $('result').hidden = true;
+  await stopScanner();
+  $('check').disabled = true;
+
+  try {
+    const data = await api({ pin: pin, code: code, action: 'checkin' });
+    const goal = data.goal ? 'الهدف: ' + data.goal : '';
+
+    if (data.status === 'bad_pin') { showPin('الـ PIN اتغيّر أو غلط. اكتبه تاني.'); return; }
+    if (data.status === 'ok') showResult('ok', 'صحيح، تم تسجيل الدخول', data.name, goal);
+    else if (data.status === 'used') showResult('used', 'الكود اتستخدم قبل كده', data.name, data.usedAt ? 'وقت الدخول: ' + data.usedAt : goal);
+    else showResult('bad', 'الكود مش موجود', '', 'راجع الكود وجرّب تاني.');
+  } catch (err) {
+    $('scan-error').textContent = serverErrorMessage(err);
+    startScanner();
+  } finally {
+    busy = false;
+    $('check').disabled = false;
+  }
+}
+
+$('check').addEventListener('click', () => handleCode($('code').value));
+$('code').addEventListener('keydown', e => { if (e.key === 'Enter') handleCode($('code').value); });
+
+// ---------- Next ----------
+$('next').addEventListener('click', () => {
+  $('result').hidden = true;
+  $('scan-error').textContent = '';
+  $('code').value = '';
+  lastCode = '';
+  startScanner();
+});
+
+// Already logged in during this tab session: go straight to the scanner
+if (pin) showScan();
+</script>
+</body>
+</html>

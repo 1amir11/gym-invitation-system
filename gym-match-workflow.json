@@ -1,0 +1,243 @@
+{
+  "name": "GYM owner match (invited visitors to members)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gym-match",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -700,
+        0
+      ],
+      "id": "d2000000-0001-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Match webhook",
+      "webhookId": "d2000000-00aa-4a5b-8c6d-7e8f9a0b1c2d"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Set a PIN for the owner dashboard. Keep it different from the staff PIN.\n// While it is still CHANGE_ME, every request is rejected.\nconst OWNER_PIN = 'CHANGE_ME';\n\nconst toLatin = s => String(s ?? '')\n  .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))\n  .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));\n\nfunction normalizePhone(raw) {\n  let d = toLatin(raw).replace(/\\D/g, '');\n  if (d.startsWith('00')) d = d.slice(2);\n  if (d.startsWith('0') && d.length === 11) d = '20' + d.slice(1);\n  else if (d.startsWith('1') && d.length === 10) d = '20' + d;\n  return /^201[0125]\\d{8}$/.test(d) ? d : '';\n}\n\nconst b = $input.first().json.body ?? {};\nconst pinOk = OWNER_PIN !== 'CHANGE_ME' && String(b.pin ?? '') === OWNER_PIN;\nconst rawNumbers = String(b.numbers ?? '');\nconst pieces = rawNumbers.split(/[\\s,;،]+/).map(s => s.trim()).filter(Boolean);\nconst numbers = new Set();\nlet ignoredNumbers = 0;\n\nfor (const piece of pieces) {\n  const normalized = normalizePhone(piece);\n  if (normalized) numbers.add(normalized);\n  else ignoredNumbers += 1;\n}\n\nreturn [{\n  json: {\n    pin_ok: pinOk,\n    numbers: [...numbers],\n    ignoredNumbers,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -480,
+        0
+      ],
+      "id": "d2000000-0002-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Validate owner input"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d2000000-00b1-4b6c-9d7e-8f9a0b1c2d3e",
+              "leftValue": "={{ $json.pin_ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        -260,
+        0
+      ],
+      "id": "d2000000-0003-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "PIN ok?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{ \"status\": \"bad_pin\" }",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        -40,
+        200
+      ],
+      "id": "d2000000-0004-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Respond bad PIN"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1hhIgkO8UfQ1FF4CGE4bL3cmZqNcSDLOIl1UWTN214lQ",
+          "mode": "list",
+          "cachedResultName": "GYM",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hhIgkO8UfQ1FF4CGE4bL3cmZqNcSDLOIl1UWTN214lQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1hhIgkO8UfQ1FF4CGE4bL3cmZqNcSDLOIl1UWTN214lQ/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -40,
+        -80
+      ],
+      "alwaysOutputData": true,
+      "id": "d2000000-0005-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Get all guests",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZQuog5trRh8t5lNH",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const req = $('Validate owner input').first().json;\nconst phoneSet = new Set(req.numbers || []);\n\nconst toLatin = s => String(s ?? '')\n  .replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))\n  .replace(/[۰-۹]/g, d => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));\n\nfunction normalizePhone(raw) {\n  let d = toLatin(raw).replace(/\\D/g, '');\n  if (d.startsWith('00')) d = d.slice(2);\n  if (d.startsWith('0') && d.length === 11) d = '20' + d.slice(1);\n  else if (d.startsWith('1') && d.length === 10) d = '20' + d;\n  return /^201[0125]\\d{8}$/.test(d) ? d : '';\n}\n\nconst rows = $input.all()\n  .map(item => item.json || {})\n  .filter(row => Object.keys(row).length > 0);\n\nconst invitedStages = new Set(['followup1_sent', 'visited']);\nlet registered = 0;\nlet invited = 0;\nlet visited = 0;\nconst matches = [];\n\nfor (const row of rows) {\n  const stage = String(row.Stage ?? '').trim().toLowerCase();\n  registered += 1;\n  if (invitedStages.has(stage)) invited += 1;\n  if (stage === 'visited') {\n    visited += 1;\n    const phone = normalizePhone(row['WhatsApp Number']);\n    if (phone && phoneSet.has(phone)) {\n      matches.push({\n        name: row.Name ?? '',\n        visitedAt: row.UsedAt ?? '',\n      });\n    }\n  }\n}\n\nreturn [{\n  json: {\n    status: 'ok',\n    registered,\n    invited,\n    visited,\n    matched: matches.length,\n    matches,\n    ignoredNumbers: req.ignoredNumbers || 0,\n  },\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        180,
+        -80
+      ],
+      "id": "d2000000-0006-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Compare visited guests"
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseCode": 200,
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "application/json; charset=utf-8"
+              },
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              }
+            ]
+          }
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        400,
+        -80
+      ],
+      "id": "d2000000-0007-4a5b-8c6d-7e8f9a0b1c2d",
+      "name": "Respond result"
+    }
+  ],
+  "connections": {
+    "Match webhook": {
+      "main": [
+        [
+          {
+            "node": "Validate owner input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate owner input": {
+      "main": [
+        [
+          {
+            "node": "PIN ok?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "PIN ok?": {
+      "main": [
+        [
+          {
+            "node": "Get all guests",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond bad PIN",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get all guests": {
+      "main": [
+        [
+          {
+            "node": "Compare visited guests",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compare visited guests": {
+      "main": [
+        [
+          {
+            "node": "Respond result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "timezone": "Africa/Cairo"
+  },
+  "pinData": {},
+  "meta": {
+    "templateCredsSetupCompleted": true
+  }
+}
